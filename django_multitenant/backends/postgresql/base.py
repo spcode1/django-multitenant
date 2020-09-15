@@ -37,6 +37,7 @@ class DatabaseSchemaEditor(PostgresqlDatabaseSchemaEditor):
         # recreated them.
         # Here we test if we are in this case
         if isinstance(new_field, TenantForeignKey) and new_field.db_constraint:
+            fk_names = None
             try:
                 from_model = get_model_by_db_table(model._meta.db_table)
                 fk_names = (self._constraint_names(model,
@@ -45,10 +46,9 @@ class DatabaseSchemaEditor(PostgresqlDatabaseSchemaEditor):
                             self._constraint_names(model,
                                                 [new_field.column,
                                                     get_tenant_column(from_model)],
-                                                foreign_key=True)
+                                                foreign_key=True))
             except ValueError:
-                # This case happens when we are running from scratch migrations and one model was removed from code
-                fk_names = None
+                pass
             if not fk_names:
                 self.execute(self._create_fk_sql(model, new_field,
                                                  "_fk_%(to_table)s_%(to_column)s"))
